@@ -1,6 +1,5 @@
 import torch
 from util import BertEmbeddings,BertEncoder,BertPooler,BertConfig
-
 from BertPreTrainedModel import BertPreTrainedModel
 
 class BertModel(BertPreTrainedModel):

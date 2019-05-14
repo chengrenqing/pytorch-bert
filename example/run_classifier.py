@@ -80,7 +80,7 @@ def main():
 		ptvsd.wait_for_attach()
 
 	if args.local_rank == -1 or args.no_cuda:
-		device = torch.device("cuda" if torch.cuda.is_available() and not not args.no_cuda else "cpu")
+		device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
 		n_gpu = torch.cuda.device_count()
 	else:
 		torch.cuda.set_device(args.local_rank)

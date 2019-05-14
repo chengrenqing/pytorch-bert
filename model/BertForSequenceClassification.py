@@ -1,4 +1,9 @@
-class BertForSequenceClassification(BertPreTreainedModel):
+import sys
+import os
+from BertPreTrainedModel import BertPreTrainedModel
+from torch.nn import CrossEntropyLoss
+
+class BertForSequenceClassification(BertPreTrainedModel):
 	def __init__(self,config,num_labels):
 		super(BertForSequenceClassification,self).__init__(config)
 		self.num_labels = num_labels

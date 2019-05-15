@@ -10,8 +10,9 @@ import torch
 
 # print(sys.path)
 sys.path.append(os.path.abspath('../model/'))
+sys.path.append(os.path.abspath('../model/util/'))
 # print(sys.path)
-import BertForSequenceClassification
+from BertForSequenceClassification import BertForSequenceClassification
 from util import BertConfig,BertTokenizer
 from util import PYTORCH_PRETRAINED_BERT_CACHE, WEIGHTS_NAME, CONFIG_NAME
 from datasets import MrpcProcessor

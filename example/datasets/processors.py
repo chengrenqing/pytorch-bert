@@ -1,7 +1,19 @@
 import os
 import logging
+import csv
+import sys
 
 logger = logging.getLogger(__name__)
+
+class InputExample(object):
+	"""A single training/test example for simple sequence classification."""
+	def __init__(self, guid,text_a,text_b,label=None):
+		super(InputExample, self).__init__()
+		self.guid = guid
+		self.text_a = text_a
+		self.text_b = text_b
+		self.label = label
+		
 class DataProcessor(object):
 	"""Base class for data converters for sequence classification data sets."""
 	def get_train_examples(self,data_dir):

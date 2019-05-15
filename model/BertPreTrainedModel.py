@@ -32,6 +32,7 @@ class BertPreTrainedModel(nn.Module):
 		if isinstance(module,nn.Linear) and module.bias is not None:
 			module.bias.data.zero_()
 
+	@classmethod
 	def from_pretrained(cls,pretrained_model_name_or_path,*input,**kwargs):
 		state_dict = kwargs.get('state_dict',None)
 		kwargs.pop('state_dict',None)
@@ -79,6 +80,7 @@ class BertPreTrainedModel(nn.Module):
 		if state_dict is None and not from_tf:
 			weights_path = os.path.join(serialization_dir,WEIGHTS_NAME)
 			state_dict = torch.load(weights_path,map_location='cpu')
+		return model
 
 
 

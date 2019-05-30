@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "hello world!"
+echo "begin run_classifier!"
 export GLUE_DIR=datasets/glue/
 python run_classifier.py \
     --task_name MRPC \

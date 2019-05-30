@@ -2,6 +2,7 @@ import logging
 import torch
 from torch import nn
 from util import BertConfig,BertLayerNorm
+from util import cached_path
 
 
 logger = logging.getLogger(__name__)

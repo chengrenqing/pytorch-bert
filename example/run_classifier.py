@@ -19,6 +19,26 @@ from datasets import MrpcProcessor
 
 logger = logging.getLogger(__name__)
 
+
+
+def convert_examples_to_features(examples,label_list,max_seq_length,tokenizer,output_mode):
+	'''Loads a data file into a list of `InputBatch`s.'''
+
+	label_map = {label:i for i ,label in enumerate(label_list)}
+
+	features = []
+	for (ex_index,example) in enumerate(examples):
+		if ex_index % 10000 == 0:
+			logger.info("Writing example %d of %d"%(ex_index,len(examples)))
+
+		tokens_a = tokenizer.tokenize(example.text_a) #call
+
+		tokens_b = None
+
+		if example.text_b:
+			tokens_b = tokenizer.tokenize(example.text_b)
+	##unfinish
+
 processors = {
 	# "cola":ColaProcessor,
 	# "mnli":MnliProcessor,
@@ -152,6 +172,34 @@ def main():
 	# Prepare optimizer
 	if args.do_train:
 		param_optimizer = list(model.named_parameters)
+		no_decay = ['bias','LayerNorm.bias','LayerNorm.weight']
+		optimizer_grouped_parameters = [
+		{'params':[p for n,p in param_optimizer if not any(nd in n for nd in no_decay)],'weight_decay':0.01}
+		{'params':[p for n,p in param_optimizer if any(nd in n for nd in no_decay)],'weight_decay':0.0}
+		]
+
+		if args.fp16:
+			try:
+				from apex.optimizers import FP16_Optimizer
+				from apex.optimizers import FusedAdam
+			except ImportError:
+				raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+
+			optimizer = FusedAdam(optimizer_grouped_parameters,lr=args.learning_rate,bias_correction=False,max_grad_norm=1.0)
+			if args.loss_scale == 0:
+				optimizer = FP16_Optimizer(optimizer,dynamic_loss_scale=True)
+			else:
+				optimizer = FP16_Optimizer(optimizer,static_loss_scale = args.loss_scale)
+			warmup_linear = WarmupLinearSchedule(warmup=args.warmup_proportion,t_total=num_train_optimization_steps)
+
+		else:
+			optimizer = BertAdam(optimizer_grouped_parameters,lr=args.learning_rate,warmup=args.warmup_proportion,t_total=num_train_optimization_steps)
+
+	global_step = 0
+	nb_tr_steps = 0
+	tr_loss = 0
+	if args.do_train:
+		train_features = convert_examples_to_features(train_examples,label_list,args.max_seq_length,tokenizer,output_mode)
 
 
 

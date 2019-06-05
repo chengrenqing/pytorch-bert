@@ -4,7 +4,9 @@
 ### 2019/05/14 撰写run_classifier.py 101 code。写好了tokenization框架。处理好数据处理部分，见example/datasets，并处理了mrpc数据集
 ### 2019/05/15 调试了一些bug，目前run_classifier运行到136行。完善了processors和tokenization
 ### 2019/05/30 run_classifier运行到202行
+### 2019/06/05 完善了tokenization分词等处理，完善optimization自定义优化器。
 
 ## 下一步安排
 
-### 完善convert_examples_to_features，继续撰写run_classifier.py
+### 继续撰写run_classifier.py
+

@@ -17,10 +17,18 @@ from util import BertConfig,BertTokenizer
 from util import PYTORCH_PRETRAINED_BERT_CACHE, WEIGHTS_NAME, CONFIG_NAME
 from datasets import MrpcProcessor
 
+
 logger = logging.getLogger(__name__)
 
 
-
+class InputFeatures(object):
+	"""A single set of features of data."""
+	def __init__(self, input_ids,input_mask,segment_ids,label_id):
+		self.input_ids = input_ids
+		self.input_mask = input_mask
+		self.segment_ids = segment_ids
+		self.label_id = label_id
+		
 def convert_examples_to_features(examples,label_list,max_seq_length,tokenizer,output_mode):
 	'''Loads a data file into a list of `InputBatch`s.'''
 
@@ -36,7 +44,59 @@ def convert_examples_to_features(examples,label_list,max_seq_length,tokenizer,ou
 		tokens_b = None
 
 		if example.text_b:
-			tokens_b = tokenizer.tokenize(example.text_b)
+			tokens_b = tokenizer.tokenize(example.text_b) #call
+			'''Modifies `tokens_a` and `tokens_b` in place so that the total length is less than the specified length.'''
+			''' Account for [CLS], [SEP], [SEP] with "- 3"'''
+			_truncate_seq_pair(tokens_a,tokens_b,max_seq_length-3)  #call
+		else:
+
+			if len(tokens_a) > max_seq_length - 2:
+				tokens_a = tokens_a[:(max_seq_length-2)]
+		
+
+		tokens = ["[CLS]"] +tokens_a + ["[SEP]"]
+		segment_ids = [0]*len(tokens)
+
+		if tokens_b:
+			tokens += tokens_b + ["[SEP]"]
+			segment_ids += [1] * (len(tokens_b)+1)
+
+		input_ids = tokenizer.convert_tokens_to_ids(tokens)
+
+		'''The mask has 1 for real tokens and 0 for padding tokens. Only real tokens are attended to'''
+		input_mask = [1] * len(input_ids)
+
+		'''Zero-pad up to the sequence length.'''
+		padding = [0] * (max_seq_length - len(input_ids))
+
+		input_ids += padding
+		input_mask += padding
+		segment_ids += padding
+
+		assert len(input_ids) == max_seq_length
+		assert len(input_mask) == max_seq_length
+		assert len(segment_ids) == max_seq_length
+
+		if output_mode == "classification":
+			label_id = label_map[example.label]
+		elif output_mode == "regression":
+			label_id = float(example.label)
+
+		if ex_index <5 :
+			logger.info("*** Example ***")
+			logger.info("guid: %s"%(example.guid))
+			logger.info("tokens: %s"% " ".join([str(x) for x in tokens]))
+			logger.info("input_ids: %s"% " ".join([str(x) for x in input_ids]))
+			logger.info("input_mask: %s"% " ".join([str(x) for x in input_mask]))
+			logger.info("segment_ids: %s"% " ".join([str(x) for x in segment_ids]))
+			logger.info("label: %s (id=%d)"%(example.label,label_id))
+		features.append(
+			InputFeatures(input_ids=input_ids,
+				input_mask=input_mask,
+				segment_ids=segment_ids,
+				label_id=label_id)) #call
+	return features
+
 	##unfinish
 
 processors = {
@@ -200,6 +260,21 @@ def main():
 	tr_loss = 0
 	if args.do_train:
 		train_features = convert_examples_to_features(train_examples,label_list,args.max_seq_length,tokenizer,output_mode)
+		logger.info("***** Running training *****")
+		logger.info("  Num examples = %d", len(train_examples))
+		logger.info("  Batch size = %d", args.train_batch_size)
+		logger.info("  Num steps = %d", num_train_optimization_steps)
+
+		all_input_ids = torch.tensor([f.input_ids for f in train_features],dtype=torch.long)
+		all_input_mask = torch.tensor([f.input_mask for f in train_features],dtype=torch.long)
+		all_segment_ids = torch.tensor([f.segment_ids for f in train_features],dtype=torch.long)
+
+		if output_mode == "classification":
+			all_label_ids=torch.tensor([f.label_id for f in train_features],dtype=torch.long)
+		elif output_mode == "regression":
+			all_label_ids = torch.tensor([f.label_id for f in train_features],dtype=torch.float)
+
+		
 
 
 
